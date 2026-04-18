@@ -38,7 +38,7 @@ const Register = () => {
       // make req to author api
       if (role === "AUTHOR") {
         let resObj = await axios.post(
-          "http://localhost:4000/author-api/users",
+          "https://blogapp-mern-api-epmy.onrender.com/author-api/users",
           formData,
         );
         console.log("res obj is ", resObj);
@@ -51,7 +51,7 @@ const Register = () => {
       // make req to user api
       if (role === "USER") {
         let resObj = await axios.post(
-          "http://localhost:4000/user-api/users",
+          "https://blogapp-mern-api-epmy.onrender.com/user-api/users",
           formData,
         );
         console.log("res obj is ", resObj);

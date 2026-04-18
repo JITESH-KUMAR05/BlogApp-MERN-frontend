@@ -16,7 +16,7 @@ const AddArticle = () => {
         // adding the author id to the article obj --> need not to do as backend ishandling this 
         // articleObj.author = currentUser?._id;
         try {
-            await axios.post("http://localhost:4000/author-api/articles",
+            await axios.post("https://blogapp-mern-api-epmy.onrender.com/author-api/articles",
                 articleObj,
                 {withCredentials:true}
             );

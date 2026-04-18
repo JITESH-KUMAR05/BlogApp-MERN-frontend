@@ -26,7 +26,7 @@ const userProfile = () => {
             setLoading(true);
             try {
                 // toast("loading all the articles")
-                let allArticles = await axios.get("http://localhost:4000/user-api/articles",{withCredentials:true})
+                let allArticles = await axios.get("https://blogapp-mern-api-epmy.onrender.com/user-api/articles",{withCredentials:true})
                 toast.success("articles loaded")
                 // console.log(allArticles)
                 setarticles(allArticles.data.payload)

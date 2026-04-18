@@ -25,7 +25,7 @@ const Article = () => {
       const fetchArticle = async() => {
         try {
           console.log("use effect in article running")
-          const resObj = await axios.get(`http://localhost:5000/user-api/article/${id}`);
+          const resObj = await axios.get(`https://blogapp-mern-api-epmy.onrender.com/user-api/article/${id}`);
           const res = resObj.data.payload;
           setArticle(res);
 
@@ -44,7 +44,7 @@ const Article = () => {
     console.log(data)
     const obj = {articleId:article._id,comment:data.comment};
     console.log(obj)
-    const res = await axios.put("http://localhost:4000/user-api/articles",obj,{withCredentials:true})
+    const res = await axios.put("https://blogapp-mern-api-epmy.onrender.com/user-api/articles",obj,{withCredentials:true})
 
     if (res.status === 200) {
       toast.success(res.data.message);
@@ -61,7 +61,7 @@ const Article = () => {
 
     try {
       const res = await axios.patch(
-        `http://localhost:4000/author-api/articles/${id}/status`,
+        `https://blogapp-mern-api-epmy.onrender.com/author-api/articles/${id}/status`,
         { isArticleActive: newStatus },
         { withCredentials: true },
       );
