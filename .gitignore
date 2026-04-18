@@ -1,0 +1,4 @@
+# things to be ignored
+.env/
+.env
+node_modules/
