@@ -25,8 +25,9 @@ const connectDB = async() => {
 
 connectDB();
 // cors
+let allowedOrigin = process.env.CLIENT_URL;
 app.use(cors({
-    origin:["http://localhost:5173"],
+    origin:["http://localhost:5173", allowedOrigin],
     credentials:true
 }));
 // body parser
