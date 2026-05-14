@@ -1,6 +1,7 @@
 import {create} from "zustand"
 import api from "../api/axios"
 
+
 export const useAuth = create((set) => ({
     currentUser:null,
     loading:false,
