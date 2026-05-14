@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
-import { useLocation, useNavigate, useParams } from "react-router";
-import { useEffect } from "react";
-import axios from "axios";
+import { useLocation, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import api from '../api/axios';
 import { toast } from "react-hot-toast";
 
 import {
@@ -11,14 +11,14 @@ import {
   labelClass,
   inputClass,
   submitBtn,
-  errorClass,
-  articlePageWrapper,
+  secondaryBtn,
+  loadingClass,
 } from "../styles/common";
 
 function EditArticle() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = useParams();
+  const [loading, setLoading] = useState(false);
 
   const article = location.state;
 
@@ -31,63 +31,104 @@ function EditArticle() {
 
   // prefill form
   useEffect(() => {
-    if (!article) return;
+    if (!article) {
+        navigate("/author-dashboard");
+        return;
+    }
 
      setValue("title", article.title);
      setValue("category", article.category);
      setValue("content", article.content);
-  }, [article]);
+  }, [article, navigate, setValue]);
 
   const updateArticle = async (data) => {
-    // console.log(data);
-    data.articleId = article._id;
-    let res = await axios.put("https://blogapp-mern-api-epmy.onrender.com/author-api/articles", data, { withCredentials: true });
-    console.log("res update atricle", res);
-    navigate(`/article/${article._id}`, {
-      state: {articleObj:res.data.payload},
-    });
+    setLoading(true);
+    try {
+        data.articleId = article._id;
+        let res = await api.put("/author-api/articles", data);
+        toast.success("Article updated successfully");
+        navigate(`/article/${article._id}`, {
+          state: { articleObj: res.data.payload },
+        });
+    } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to update article");
+    } finally {
+        setLoading(false);
+    }
   };
 
+  if (!article) return null;
+
   return (
-    <div className={`${formCard} mt-10`}>
-      <h2 className={formTitle}>Edit Article</h2>
+    <div className="max-w-4xl mx-auto py-12">
+      <div className={formCard + " max-w-full"}>
+        <h2 className={formTitle}>Edit Your Article</h2>
+        <p className="text-center text-gray-500 mb-10 -mt-4 font-medium">Refine your thoughts and update your story</p>
 
-      <form onSubmit={handleSubmit(updateArticle)}>
-        {/* Title */}
-        <div className={formGroup}>
-          <label className={labelClass}>Title</label>
+        <form onSubmit={handleSubmit(updateArticle)}>
+          {/* Title */}
+          <div className={formGroup}>
+            <label className={labelClass}>Article Title</label>
+            <input 
+              className={inputClass} 
+              {...register("title", { required: "Title is required" })} 
+              placeholder="Enter title..."
+            />
+            {errors.title && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.title.message}</p>}
+          </div>
 
-          <input className={inputClass} {...register("title", { required: "Title required" })} />
+          {/* Category */}
+          <div className={formGroup}>
+            <label className={labelClass}>Category</label>
+            <select className={inputClass} {...register("category", { required: "Category is required" })}>
+              <option value="">Select a category</option>
+              <option value="programming">Programming</option>
+              <option value="DSA">Data Structures & Algorithms</option>
+              <option value="AI/ML">Artificial Intelligence / Machine Learning</option>
+              <option value="WebDev">Web Development</option>
+              <option value="Design">Design</option>
+              <option value="Personal">Personal Growth</option>
+            </select>
+            {errors.category && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.category.message}</p>}
+          </div>
 
-          {errors.title && <p className={errorClass}>{errors.title.message}</p>}
-        </div>
+          {/* Content */}
+          <div className={formGroup}>
+            <label className={labelClass}>Content</label>
+            <textarea 
+              rows="14" 
+              className={inputClass + " min-h-[300px] resize-y py-4 leading-relaxed"} 
+              {...register("content", { required: "Content is required" })} 
+              placeholder="Tell your story..."
+            />
+            {errors.content && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.content.message}</p>}
+          </div>
 
-        {/* Category */}
-        <div className={formGroup}>
-          <label className={labelClass}>Category</label>
+          <div className="flex gap-4 pt-4">
+            <button 
+              type="button" 
+              onClick={() => navigate(-1)} 
+              className={secondaryBtn + " flex-1"}
+            >
+              Cancel
+            </button>
+            <button 
+              disabled={loading}
+              className={submitBtn + " flex-[2] mt-0"}
+              type="submit"
+            >
+              {loading ? "Updating..." : "Save Changes"}
+            </button>
+          </div>
 
-          <select className={inputClass} {...register("category", { required: "Category required" })}>
-            <option value="">Select category</option>
-            <option value="technology">Technology</option>
-            <option value="programming">Programming</option>
-            <option value="ai">AI</option>
-            <option value="web-development">Web Development</option>
-          </select>
-
-          {errors.category && <p className={errorClass}>{errors.category.message}</p>}
-        </div>
-
-        {/* Content */}
-        <div className={formGroup}>
-          <label className={labelClass}>Content</label>
-
-          <textarea rows="14" className={inputClass} {...register("content", { required: "Content required" })} />
-
-          {errors.content && <p className={errorClass}>{errors.content.message}</p>}
-        </div>
-
-        <button className={submitBtn}>Update Article</button>
-      </form>
+          {loading && (
+            <div className={loadingClass}>
+              <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              <p className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Saving changes...</p>
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

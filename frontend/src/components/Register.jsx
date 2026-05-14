@@ -1,224 +1,233 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
-import { useNavigate } from "react-router";
-import { loadingClass, errorClass } from "../styles/common.js";
-import { useEffect } from "react";
+import api from "../api/axios";
+import { useNavigate, NavLink } from "react-router";
+import { 
+  formCard, 
+  formTitle, 
+  formGroup, 
+  labelClass, 
+  inputClass, 
+  submitBtn, 
+  errorClass, 
+  loadingClass,
+  linkClass,
+  secondaryBtn
+} from "../styles/common.js";
 
 const Register = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+        role: "USER"
+    }
+  });
   const [loading, setloading] = useState(false);
   const [error, seterror] = useState(null);
   const [preview, setPreview] = useState(null);
   const navigate = useNavigate();
-  // const [res, setres] = useState([])
-  // need to make an api call to the backend register api
+  
+  const selectedRole = watch("role");
+
   const submitHandler = async (data) => {
     setloading(true);
-    console.log(data);
+    seterror(null);
 
-    // Create form data object
-        const formData = new FormData();
-        //get user object
-        let { role, profileImageUrl, ...userObj } = data;
-        // console.log(role)
-        console.log(profileImageUrl[0])
-        //add all fields except profileImageUrl to FormData object
-        Object.keys(userObj).forEach((key) => {
-        formData.append(key, userObj[key]);
-        });
-        // add profileImageUrl to Formdata object
+    const formData = new FormData();
+    let { role, profileImageUrl, ...userObj } = data;
+    
+    Object.keys(userObj).forEach((key) => {
+      formData.append(key, userObj[key]);
+    });
+    
+    if (profileImageUrl && profileImageUrl[0]) {
         formData.append("profileImageUrl", profileImageUrl[0]);
+    }
+
     try {
-      let { role, ...userObj } = data;
-      // make req to author api
-      if (role === "AUTHOR") {
-        let resObj = await axios.post(
-          "https://blogapp-mern-api-epmy.onrender.com/author-api/users",
-          formData,
-        );
-        console.log("res obj is ", resObj);
-        let res = resObj.data;
-        console.log("res is ", res);
-        if (resObj.status === 201) {
-          navigate("/login");
+      const endpoint = role === "AUTHOR" 
+        ? "/author-api/users"
+        : "/user-api/users";
+        
+      const resObj = await api.post(endpoint, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
         }
-      }
-      // make req to user api
-      if (role === "USER") {
-        let resObj = await axios.post(
-          "https://blogapp-mern-api-epmy.onrender.com/user-api/users",
-          formData,
-        );
-        console.log("res obj is ", resObj);
-        let res = resObj.data;
-        console.log("res is ", res);
-        if (resObj.status === 201) {
-          navigate("/login");
-        }
+      });
+      
+      if (resObj.status === 201) {
+        navigate("/login");
       }
     } catch (err) {
-      console.log(err);
       seterror(err.response?.data?.error || "Registration Failed");
     } finally {
       setloading(false);
     }
   };
 
-//   cleanup (remove the preview image from browser memory)
-useEffect(() => {
-        return () => {
-            if (preview) {
-                URL.revokeObjectURL(preview);
-            }
-        };
-        }, [preview]);
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
-  // loading
-  if (loading === true) {
-    return <p className={loadingClass}></p>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
-  // // errors
-  // if(error){
-  //     return <p className={errorClass}>{error.message}</p>
-  // }
-
   return (
-    <div className="p-5 w-full text-center">
-      <h1 className="text-5xl mt-10 mb-6">Register</h1>
-      {error && <p className={errorClass}>{error}</p>}
-      <form
-        onSubmit={handleSubmit(submitHandler)}
-        className="bg-gray-200  w-[80%] md:w-170 shadow rounded-2xl m-auto p-5 md:p-10 mt-10  "
-      >
-        <div className="flex flex-col sm:flex-row w-full m-auto gap-3 justify-center items-center">
-          <h2 className="font-medium">Select Role</h2>
-          <div className="">
-            <input
-              type="radio"
-              {...register("role", { required: true })}
-              value={"USER"}
-              id=""
-            />
-            <label htmlFor="role">User</label>
-          </div>
-          <div>
-            <input
-              type="radio"
-              {...register("role", { required: true })}
-              name="role"
-              value={"AUTHOR"}
-              id=""
-            />
-            <label htmlFor="role">Author</label>
-          </div>
-        </div>
-        {errors.role?.type === "required" && (
-          <p className="text-red-600">Choosing role is required</p>
-        )}
-        <div className="mt-2 w-full m-auto flex flex-col gap-3 justify-center  md:flex-row md:gap-1">
-          <input
-            {...register("firstName", { required: true, minLength: 3 })}
-            className="bg-gray-400 md:w-2/5 rounded-2xl p-2 md:p-2 text-center"
-            type="text"
-            placeholder="First Name"
-          />
-          <input
-            {...register("lastName")}
-            className="bg-gray-400 md:w-2/5 rounded-2xl p-2 md:p-2 text-center"
-            type="text"
-            placeholder="Last Name"
-          />
-        </div>
-        {errors.firstName?.type === "required" && (
-          <p className="text-red-600">First name is required</p>
-        )}
-        {errors.firstName?.type === "minLength" && (
-          <p className="text-red-600">minimum length should be 3</p>
-        )}
-        <div className="mt-2 flex flex-col gap-2 w-full  md:w-full m-auto justify-center ">
-          <input
-            {...register("email", { required: true })}
-            className="bg-gray-400 w-full md:w-4/5 rounded-2xl p-2 m-auto px-2 text-center"
-            type="email"
-            placeholder="Email"
-          />
-          {errors.email?.type === "required" && (
-            <p className="text-red-600">email is required</p>
-          )}
-          <input
-          
-            {...register("password", {
-              required: true,
-              minLength: 6,
-              pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/,
-            })}
-            className="bg-gray-400 w-full md:w-4/5 rounded-2xl md:p-2 m-auto p-2 text-center"
-            type="password"
-            placeholder="Password"
-          />
-          {errors.password?.type === "required" && (
-            <p className="text-red-600">password is required</p>
-          )}
-          {errors.password?.type === "minLength" && (
-            <p className="text-red-600">min length of password is 6</p>
-          )}
-          {errors.password?.type === "pattern" && (
-            <p className="text-red-600">
-              Password must contain uppercase, lowercase and number
-            </p>
-          )}
+    <div className="max-w-7xl mx-auto px-8 py-20">
+      <div className={formCard}>
+        <h1 className={formTitle}>Create Account</h1>
+        <p className="text-center text-gray-500 mb-10 -mt-4 font-medium">Join our community of readers and writers</p>
 
-          <input
-          className="bg-gray-400 w-full md:w-4/5 rounded-2xl p-2 m-auto px-2 text-center"
-            type="file"
-            accept="image/png, image/jpeg"
-            {...register("profileImageUrl")}
-            onChange={(e) => {
-              //get image file
-              const file = e.target.files[0];
-              // validation for image format
-              if (file) {
-                if (!["image/jpeg", "image/png"].includes(file.type)) {
-                  seterror("Only JPG or PNG allowed");
-                  return;
-                }
-                //validation for file size
-                if (file.size > 2 * 1024 * 1024) {
-                  seterror("File size must be less than 2MB");
-                  return;
-                }
-                //Converts file → temporary browser URL(create preview URL)
-                const previewUrl = URL.createObjectURL(file);
-                setPreview(previewUrl);
-                seterror(null);
-              }
-            }}
-          />
+        {error && (
+          <div className={`${errorClass} mb-8`}>
+            <span>{error}</span>
+          </div>
+        )}
 
-          {preview && (
-                <div className="mt-3 flex justify-center">
-                <img
-                    src={preview}
-                    alt="Preview"
-                    className="w-24 h-24 object-cover rounded-full border"
+        <form onSubmit={handleSubmit(submitHandler)}>
+          <div className="mb-10">
+            <label className={labelClass + " text-center"}>Join as a</label>
+            <div className="flex justify-center gap-4 mt-4">
+              <label className={`cursor-pointer flex-1 flex flex-col items-center p-4 rounded-2xl border-2 transition-all ${selectedRole === "USER" ? 'border-indigo-600 bg-indigo-50/50' : 'border-gray-100 hover:border-gray-200'}`}>
+                <input
+                  type="radio"
+                  {...register("role", { required: true })}
+                  value="USER"
+                  className="hidden"
                 />
-                </div>
-            )}
-        </div>
+                <span className={`text-sm font-bold ${selectedRole === "USER" ? 'text-indigo-600' : 'text-gray-500'}`}>Reader</span>
+                <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter">I want to read and comment</span>
+              </label>
+              
+              <label className={`cursor-pointer flex-1 flex flex-col items-center p-4 rounded-2xl border-2 transition-all ${selectedRole === "AUTHOR" ? 'border-indigo-600 bg-indigo-50/50' : 'border-gray-100 hover:border-gray-200'}`}>
+                <input
+                  type="radio"
+                  {...register("role", { required: true })}
+                  value="AUTHOR"
+                  className="hidden"
+                />
+                <span className={`text-sm font-bold ${selectedRole === "AUTHOR" ? 'text-indigo-600' : 'text-gray-500'}`}>Writer</span>
+                <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter">I want to publish articles</span>
+              </label>
+            </div>
+            {errors.role && <p className="text-rose-600 text-xs font-bold mt-2 text-center uppercase tracking-wider">Please select a role</p>}
+          </div>
 
-        <button
-          className="bg-blue-400 px-3 py-1 mt-2 rounded-2xl font-medium cursor-pointer"
-          type="submit"
-        >
-          Register
-        </button>
-      </form>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className={formGroup + " mb-0"}>
+              <label className={labelClass}>First Name</label>
+              <input
+                {...register("firstName", { required: "First name is required", minLength: { value: 3, message: "Min 3 characters" } })}
+                className={inputClass}
+                type="text"
+                placeholder="John"
+              />
+              {errors.firstName && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.firstName.message}</p>}
+            </div>
+            <div className={formGroup + " mb-0"}>
+              <label className={labelClass}>Last Name</label>
+              <input
+                {...register("lastName")}
+                className={inputClass}
+                type="text"
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+
+          <div className={formGroup}>
+            <label className={labelClass}>Email Address</label>
+            <input
+              {...register("email", { required: "Email is required" })}
+              className={inputClass}
+              type="email"
+              placeholder="john@example.com"
+            />
+            {errors.email && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.email.message}</p>}
+          </div>
+
+          <div className={formGroup}>
+            <label className={labelClass}>Password</label>
+            <input
+              {...register("password", {
+                required: "Password is required",
+                minLength: { value: 6, message: "Min 6 characters" },
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/,
+                  message: "Include uppercase, lowercase and number"
+                }
+              })}
+              className={inputClass}
+              type="password"
+              placeholder="••••••••"
+            />
+            {errors.password && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.password.message}</p>}
+          </div>
+
+          <div className={formGroup}>
+            <label className={labelClass}>Profile Picture</label>
+            <div className="flex items-center gap-6 p-4 bg-gray-50 border border-gray-100 rounded-xl">
+              <div className="relative group">
+                <div className="w-16 h-16 rounded-full bg-white border border-gray-200 overflow-hidden flex items-center justify-center">
+                  {preview ? (
+                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl text-gray-300">?</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1">
+                <input
+                  className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-white file:text-indigo-600 hover:file:bg-indigo-50 file:cursor-pointer"
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  {...register("profileImageUrl")}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      if (!["image/jpeg", "image/png"].includes(file.type)) {
+                        seterror("Only JPG or PNG allowed");
+                        return;
+                      }
+                      if (file.size > 2 * 1024 * 1024) {
+                        seterror("File size must be less than 2MB");
+                        return;
+                      }
+                      const previewUrl = URL.createObjectURL(file);
+                      setPreview(previewUrl);
+                      seterror(null);
+                    }
+                  }}
+                />
+                <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-tight">JPG, PNG (Max 2MB)</p>
+              </div>
+            </div>
+          </div>
+
+          <button className={submitBtn} type="submit">
+            Create Account
+          </button>
+        </form>
+
+        <div className="mt-10 pt-8 border-t border-gray-50 text-center">
+          <p className="text-sm text-gray-500 font-medium">
+            Already have an account? <NavLink to="/login" className={linkClass + " font-bold"}>Sign in</NavLink>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

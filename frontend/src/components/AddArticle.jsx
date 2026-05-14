@@ -1,76 +1,114 @@
 import React, { useState } from 'react'
-import {useForm} from  "react-hook-form"
+import { useForm } from "react-hook-form"
 import { useAuth } from '../store/authStore';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
-import { loadingClass } from '../styles/common';
+import { 
+  formCard, 
+  formTitle, 
+  formGroup, 
+  labelClass, 
+  inputClass, 
+  submitBtn, 
+  loadingClass,
+  secondaryBtn
+} from '../styles/common';
+
 const AddArticle = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const currentUser = useAuth(state=>state.currentUser)
-    const {register , handleSubmit, formState:{errors}, reset}  = useForm();
-    // console.log(currentUser)
-    const submitHandler = async(articleObj) => {
+    const currentUser = useAuth(state => state.currentUser)
+    const { register, handleSubmit, formState: { errors }, reset } = useForm();
+
+    const submitHandler = async (articleObj) => {
         setLoading(true);
-        // adding the author id to the article obj --> need not to do as backend ishandling this 
-        // articleObj.author = currentUser?._id;
         try {
-            await axios.post("https://blogapp-mern-api-epmy.onrender.com/author-api/articles",
-                articleObj,
-                {withCredentials:true}
-            );
+            await api.post("/author-api/articles", articleObj);
 
             toast.success("Article Published Successfully!");
-
             reset();
-
-            navigate("/author-profile");
+            navigate("/author-dashboard");
 
         } catch (err) {
             toast.error(err.response?.data?.error || "Failed to publish article")
-        }
-        finally{
+        } finally {
             setLoading(false)
         }
     }
-  return (
-    <div className='p-20 text-center'>
-      <h1 className='text-5xl'>Add Article</h1>
-      <form onSubmit={handleSubmit(submitHandler)} className='bg-gray-200 md:w-170 shadow rounded-2xl m-auto p-10 mt-5'>
-                
-        <div className='mt-2 flex flex-col gap-2 w-full  md:w-full m-auto justify-center '>
-            <input {...register("title",{required:true})} className='bg-gray-400 w-full md:w-4/5 rounded-2xl md:p-2 m-auto px-2 text-center' type="text" placeholder='title' />
-            { 
-                errors.title?.type === "required" && <p className='text-red-600'>Title is required</p>
-            }
-            <select className='bg-gray-400 w-full md:w-4/5 rounded-2xl md:p-2 m-auto px-2 text-center' {...register("category",{required:true})} id="">
-                <option value="">Category</option>
-                <option value="programming">programming</option>
-                <option value="DSA">DSA</option>
-                <option value="AI/ML">AI/ML</option>
-                <option value="WebDev">WebDev</option>
-            </select>
-            { 
-                errors.category?.type === "required" && <p className='text-red-600'>category is required</p>
-            }
 
-            <textarea placeholder='Content' className='bg-gray-400 w-full md:w-4/5 rounded-2xl md:p-2 m-auto px-2 text-center' {...register("content",{required: true})}  id=""></textarea>
-            
-            
+    return (
+        <div className="max-w-4xl mx-auto py-12">
+            <div className={formCard + " max-w-full"}>
+                <h1 className={formTitle}>Write a New Article</h1>
+                <p className="text-center text-gray-500 mb-10 -mt-4 font-medium">Share your knowledge and insights with the world</p>
 
+                <form onSubmit={handleSubmit(submitHandler)}>
+                    <div className={formGroup}>
+                        <label className={labelClass}>Article Title</label>
+                        <input 
+                            {...register("title", { required: "Title is required" })} 
+                            className={inputClass} 
+                            type="text" 
+                            placeholder="Enter a catchy title..." 
+                        />
+                        {errors.title && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.title.message}</p>}
+                    </div>
+
+                    <div className={formGroup}>
+                        <label className={labelClass}>Category</label>
+                        <select 
+                            className={inputClass} 
+                            {...register("category", { required: "Please select a category" })}
+                        >
+                            <option value="">Select a category</option>
+                            <option value="programming">Programming</option>
+                            <option value="DSA">Data Structures & Algorithms</option>
+                            <option value="AI/ML">Artificial Intelligence / Machine Learning</option>
+                            <option value="WebDev">Web Development</option>
+                            <option value="Design">Design</option>
+                            <option value="Personal">Personal Growth</option>
+                        </select>
+                        {errors.category && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.category.message}</p>}
+                    </div>
+
+                    <div className={formGroup}>
+                        <label className={labelClass}>Content</label>
+                        <textarea 
+                            placeholder="Tell your story..." 
+                            className={inputClass + " min-h-[300px] resize-y py-4 leading-relaxed"} 
+                            {...register("content", { required: "Content is required" })}
+                        ></textarea>
+                        {errors.content && <p className="text-rose-600 text-xs font-bold mt-2 uppercase tracking-wider">{errors.content.message}</p>}
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                        <button 
+                            type="button" 
+                            onClick={() => navigate(-1)} 
+                            className={secondaryBtn + " flex-1"}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            disabled={loading} 
+                            className={submitBtn + " flex-[2] mt-0"} 
+                            type="submit"
+                        >
+                            {loading ? "Publishing..." : "Publish Article"}
+                        </button>
+                    </div>
+
+                    {loading && (
+                        <div className={loadingClass}>
+                            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                            <p className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Uploading to server...</p>
+                        </div>
+                    )}
+                </form>
+            </div>
         </div>
-
-        <button className='bg-blue-400 px-3 py-1 mt-2 rounded-2xl font-medium cursor-pointer' type="submit">{loading ? "Publishing article" : "Publish article"}</button>
-
-            {
-                loading && (
-                    <p className={loadingClass}>Publishing Article.....</p>
-                )
-            }
-      </form>
-    </div>
-  )
+    )
 }
 
 export default AddArticle

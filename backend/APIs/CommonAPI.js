@@ -26,6 +26,7 @@ commonRoute.post("/login",async(req,res)=>{
 })
 
 // logout
+import { ArticleModel } from "../models/ArticleModel.js";
 
 commonRoute.get("/logout",async(req,res)=>{
     // clear the cookies
@@ -38,6 +39,22 @@ commonRoute.get("/logout",async(req,res)=>{
         message: `logout successful!`
     })
 })
+
+// read all articles (Public)
+commonRoute.get("/articles", async (req, res) => {
+    try {
+        let allArticles = await ArticleModel.find({ isArticleActive: true })
+            .populate("author", "firstName lastName profileImageUrl")
+            .sort({ updatedAt: -1 });
+        res.status(200).json({
+            message: "All Articles",
+            payload: allArticles,
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching articles", error: err.message });
+    }
+});
+
 
 // change password
 commonRoute.put("/change-password",async(req,res)=>{
