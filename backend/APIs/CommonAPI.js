@@ -14,9 +14,9 @@ commonRoute.post("/login",async(req,res)=>{
     // console.log(token)
     // save the cookie as http only cookie
     res.cookie("token",token,{
-        httpOnly:true,
-        sameSite:"lax",
-        secure:false
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production"
     });
     // sending the response now
     res.status(200).json({
@@ -31,9 +31,9 @@ import { ArticleModel } from "../models/ArticleModel.js";
 commonRoute.get("/logout",async(req,res)=>{
     // clear the cookies
     res.clearCookie("token",{
-        secure:false,
-        sameSite:"lax",
-        httpOnly:true
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production"
     })
     res.status(200).json({
         message: `logout successful!`

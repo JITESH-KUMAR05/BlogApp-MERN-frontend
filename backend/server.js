@@ -34,10 +34,6 @@ app.use(cors({
 app.use(express.json());
 // cookie parser
 app.use(cookieParser());
-// cors
-app.use(cors({
-    origin:["http://localhost:5173"]
-}));
 // user api
 app.use("/user-api",userRoute);
 app.use("/common-api",commonRoute);

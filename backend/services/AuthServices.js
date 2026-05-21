@@ -51,7 +51,7 @@ export const login = async(email,password) => {
     }
 
     // generate a token
-    let signedToken = jwt.sign({email:user.email,firstName:user.firstName,role:user.role,userId:user._id,profileImageUrl:user.profileImageUrl},process.env.JWT_SECRET,{expiresIn:"1h"})
+    let signedToken = jwt.sign({email:user.email,firstName:user.firstName,role:user.role,userId:user._id,profileImageUrl:user.profileImageUrl},process.env.JWT_SECRET,{expiresIn:"7d"})
 
     let userObj = user.toObject();
     delete userObj.password;
