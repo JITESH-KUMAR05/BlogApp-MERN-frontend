@@ -28,7 +28,11 @@ const Card = ({ articleObj }) => {
         <div onClick={handleReadArticle} className={articleCardClass}>
             <div className="p-6 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
-                    <span className={tagClass}>{articleObj.category}</span>
+                    <span className={tagClass}>
+                        {articleObj.category}
+                        {/* Display an inactive marker if soft-deleted */}
+                        {!articleObj.isArticleActive && <span className="ml-2 text-red-500 bg-red-50 px-2 py-0.5 rounded-full text-[10px]">Archived</span>}
+                    </span>
                     <span className={timestampClass}>{formattedDate}</span>
                 </div>
                 

@@ -129,7 +129,7 @@ const Article = () => {
             </div>
           </div>
 
-          {user?.role === "AUTHOR" && user.userId === article.author?._id && (
+          {user?.role === "AUTHOR" && user._id === article.author?._id && (
             <div className="flex gap-3">
               <button className={editBtn} onClick={() => editArticle(article)}>Edit</button>
               <button className={deleteBtn} onClick={toggleArticleStatus}>
