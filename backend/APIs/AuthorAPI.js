@@ -73,8 +73,7 @@ authorRoute.get("/articles", verifyToken("AUTHOR"), async (req, res) => {
 
   // read the articles by the author
   let allArticles = await ArticleModel.find({
-    author: authorId,
-    isArticleActive: true,
+    author: authorId
   }).populate("author comments.user", "firstName lastName");
   // res
   res.status(200).json({ message: "author articles", payload: allArticles });
